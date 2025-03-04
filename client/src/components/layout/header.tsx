@@ -3,6 +3,7 @@ import { type Business } from "@shared/schema";
 import { Menu, Phone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Link } from "wouter";
 
 interface HeaderProps {
   business: Business;
@@ -12,9 +13,10 @@ export default function Header({ business }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
-    { label: "Home", href: "#home" },
-    { label: "Services", href: "#services" },
-    { label: "Contact", href: "#contact" },
+    { label: "Home", href: `/${business.site}` },
+    { label: "Commercial", href: `/${business.site}/commercial` },
+    { label: "Services", href: `/${business.site}#services` },
+    { label: "Contact", href: `/${business.site}#contact` },
   ];
 
   return (
@@ -28,13 +30,23 @@ export default function Header({ business }: HeaderProps) {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
           {navItems.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              {item.label}
-            </a>
+            item.href.includes('#') ? (
+              <a
+                key={item.href}
+                href={item.href}
+                className="text-sm font-medium transition-colors hover:text-primary"
+              >
+                {item.label}
+              </a>
+            ) : (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-sm font-medium transition-colors hover:text-primary"
+              >
+                {item.label}
+              </Link>
+            )
           ))}
           <Button asChild>
             <a href={`tel:${business.phone}`}>
@@ -54,14 +66,25 @@ export default function Header({ business }: HeaderProps) {
           <SheetContent>
             <nav className="flex flex-col gap-4">
               {navItems.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className="text-lg font-medium"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {item.label}
-                </a>
+                item.href.includes('#') ? (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className="text-lg font-medium"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="text-lg font-medium"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                )
               ))}
               <Button asChild className="w-full">
                 <a href={`tel:${business.phone}`}>
