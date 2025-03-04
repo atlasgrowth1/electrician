@@ -30,5 +30,22 @@ export const contactFormSchema = z.object({
   message: z.string().min(10, "Message must be at least 10 characters")
 });
 
+export const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  site: z.string()
+});
+
+export const userSchema = z.object({
+  id: z.number(),
+  email: z.string().email(),
+  site: z.string(),
+  name: z.string(),
+  role: z.enum(["provider"]),
+  createdAt: z.string()
+});
+
 export type Business = z.infer<typeof businessSchema>;
 export type ContactForm = z.infer<typeof contactFormSchema>;
+export type LoginCredentials = z.infer<typeof loginSchema>;
+export type User = z.infer<typeof userSchema>;

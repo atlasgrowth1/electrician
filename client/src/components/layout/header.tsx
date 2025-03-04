@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { type Business } from "@shared/schema";
-import { Menu, Phone, X } from "lucide-react";
+import { Menu, Phone, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Link } from "wouter";
@@ -48,6 +48,12 @@ export default function Header({ business }: HeaderProps) {
               </Link>
             )
           ))}
+          <Button asChild variant="outline">
+            <Link href={`/${business.site}/login`}>
+              <User className="h-4 w-4 mr-2" />
+              Provider Login
+            </Link>
+          </Button>
           <Button asChild>
             <a href={`tel:${business.phone}`}>
               <Phone className="mr-2 h-4 w-4" />
@@ -86,6 +92,12 @@ export default function Header({ business }: HeaderProps) {
                   </Link>
                 )
               ))}
+              <Button asChild variant="outline" className="w-full">
+                <Link href={`/${business.site}/login`} onClick={() => setIsOpen(false)}>
+                  <User className="h-4 w-4 mr-2" />
+                  Provider Login
+                </Link>
+              </Button>
               <Button asChild className="w-full">
                 <a href={`tel:${business.phone}`}>
                   <Phone className="mr-2 h-4 w-4" />

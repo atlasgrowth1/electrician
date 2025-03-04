@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import fetch from "node-fetch";
-import { businessSchema } from "@shared/schema";
+import { businessSchema, loginSchema } from "@shared/schema";
+import { storage } from "./storage";
 
 const GITHUB_URL = "https://raw.githubusercontent.com/atlasgrowth1/data/refs/heads/main/electricians/alabama.json";
 
@@ -29,6 +30,23 @@ export async function registerRoutes(app: Express) {
     } catch (error) {
       console.error("Error fetching business data:", error);
       res.status(500).json({ message: "Failed to fetch business data" });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const credentials = loginSchema.parse(req.body);
+      const user = await storage.authenticateUser(credentials);
+
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // In a real app, we would set up a proper session here
+      res.json({ user });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(400).json({ message: "Invalid request" });
     }
   });
 
