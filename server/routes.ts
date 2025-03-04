@@ -3,6 +3,7 @@ import { createServer } from "http";
 import fetch from "node-fetch";
 import { businessSchema, loginSchema } from "@shared/schema";
 import { storage } from "./storage";
+import { ZodError } from "zod";
 
 const GITHUB_BASE_URL = "https://raw.githubusercontent.com/atlasgrowth1/data/refs/heads/main/electricians";
 const VALID_STATES = ["alabama", "arkansas"];
@@ -44,7 +45,6 @@ export async function registerRoutes(app: Express) {
     }
   });
 
-  // Add endpoint to get all businesses from all states
   app.get("/api/businesses", async (req, res) => {
     try {
       const allBusinesses = [];
@@ -58,24 +58,35 @@ export async function registerRoutes(app: Express) {
           continue;
         }
 
-        const businesses = await response.json() as Array<any>;
+        const rawData = await response.text();
+        console.log(`Raw response from ${state}:`, rawData.substring(0, 200) + '...');
+
+        const businesses = JSON.parse(rawData) as Array<any>;
+        console.log(`Found ${businesses.length} businesses in ${state}`);
+
         // Validate each business and add state info
         for (const business of businesses) {
           try {
             const validatedBusiness = businessSchema.parse({
               ...business,
-              state: state // Add state field
+              state // Add state field
             });
             allBusinesses.push(validatedBusiness);
-          } catch (validationError) {
-            console.error(`Validation failed for business ${business.name}:`, validationError);
-            // Skip invalid businesses instead of failing the whole request
+          } catch (error) {
+            if (error instanceof ZodError) {
+              console.error(`Validation failed for business ${business.name || 'unknown'} in ${state}:`, {
+                errors: error.errors,
+                data: business
+              });
+            } else {
+              console.error(`Unknown error processing business in ${state}:`, error);
+            }
             continue;
           }
         }
       }
 
-      console.log(`Returning ${allBusinesses.length} validated businesses`);
+      console.log(`Successfully validated and returning ${allBusinesses.length} businesses`);
       res.json(allBusinesses);
     } catch (error) {
       console.error("Error fetching all businesses:", error);

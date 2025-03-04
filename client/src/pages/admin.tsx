@@ -25,7 +25,9 @@ export default function Admin() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: businesses, isLoading, error } = useQuery<(Business & { state: string })[]>({
+  console.log("Admin component rendered"); // Debug log
+
+  const { data: businesses, isLoading, error } = useQuery<Business[]>({
     queryKey: ["/api/businesses"],
     retry: 1
   });
@@ -43,7 +45,7 @@ export default function Admin() {
     return <div className="min-h-screen p-8 text-red-500">Failed to load businesses: {error.message}</div>;
   }
 
-  if (!businesses) {
+  if (!businesses || businesses.length === 0) {
     return <div className="min-h-screen p-8">No businesses found</div>;
   }
 
