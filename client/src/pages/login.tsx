@@ -1,4 +1,4 @@
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { type Business, loginSchema } from "@shared/schema";
 import { useForm } from "react-hook-form";
@@ -21,6 +21,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Login() {
   const { site } = useParams();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+
+  console.log("Login page - site parameter:", site); // Debug log
 
   const { data: business, isLoading, error } = useQuery<Business>({
     queryKey: [`/api/business/${site}`],
@@ -52,11 +55,23 @@ export default function Login() {
         throw new Error('Login failed');
       }
 
+      const result = await response.json();
+      console.log("Login successful, redirecting to dashboard", { site, result }); // Debug log
+
       toast({
         title: "Success",
         description: "Logged in successfully"
       });
+
+      // Ensure we have a valid site before redirecting
+      if (!site) {
+        throw new Error('Missing site parameter');
+      }
+
+      // Redirect to dashboard after successful login
+      setLocation(`/${site}/dashboard`);
     } catch (error) {
+      console.error("Login error:", error); // Debug log
       toast({
         title: "Error",
         description: "Invalid credentials",

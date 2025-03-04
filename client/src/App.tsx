@@ -6,14 +6,15 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Commercial from "@/pages/commercial";
 import Login from "@/pages/login";
+import Dashboard from "@/pages/dashboard";
 
 function Router() {
   return (
     <Switch>
       <Route path="/:site/commercial" component={Commercial} />
       <Route path="/:site/login" component={Login} />
+      <Route path="/:site/dashboard" component={Dashboard} />
       <Route path="/:site" component={Home} />
-      <Route path="/:site/" component={Home} />
       <Route path="/" component={NotFound} />
     </Switch>
   );
