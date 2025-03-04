@@ -50,6 +50,7 @@ export async function registerRoutes(app: Express) {
       const allBusinesses = [];
 
       for (const state of VALID_STATES) {
+        console.log(`Fetching businesses from ${state}`);
         const response = await fetch(`${GITHUB_BASE_URL}/${state}.json`);
 
         if (!response.ok) {
@@ -58,9 +59,23 @@ export async function registerRoutes(app: Express) {
         }
 
         const businesses = await response.json() as Array<any>;
-        allBusinesses.push(...businesses.map(b => ({ ...b, state })));
+        // Validate each business and add state info
+        for (const business of businesses) {
+          try {
+            const validatedBusiness = businessSchema.parse({
+              ...business,
+              state: state // Add state field
+            });
+            allBusinesses.push(validatedBusiness);
+          } catch (validationError) {
+            console.error(`Validation failed for business ${business.name}:`, validationError);
+            // Skip invalid businesses instead of failing the whole request
+            continue;
+          }
+        }
       }
 
+      console.log(`Returning ${allBusinesses.length} validated businesses`);
       res.json(allBusinesses);
     } catch (error) {
       console.error("Error fetching all businesses:", error);

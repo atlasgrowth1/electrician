@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { type Business } from "@shared/schema";
 import {
   Table,
@@ -30,7 +30,9 @@ export default function Admin() {
     retry: 1
   });
 
-  console.log("Admin page - businesses data:", { businesses, isLoading, error }); // Debug log
+  useEffect(() => {
+    console.log("Admin page - businesses data:", { businesses, isLoading, error }); // Debug log
+  }, [businesses, isLoading, error]);
 
   if (isLoading) {
     return <div className="min-h-screen p-8">Loading businesses...</div>;

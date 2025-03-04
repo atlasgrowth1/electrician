@@ -12,10 +12,10 @@ import Admin from "@/pages/admin";
 function Router() {
   return (
     <Switch>
+      <Route path="/admin" component={Admin} />
       <Route path="/:site/commercial" component={Commercial} />
       <Route path="/:site/login" component={Login} />
       <Route path="/:site/dashboard" component={Dashboard} />
-      <Route path="/admin" component={Admin} />
       <Route path="/:site" component={Home} />
       <Route path="/" component={NotFound} />
     </Switch>
