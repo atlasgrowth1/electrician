@@ -36,9 +36,10 @@ export class MemStorage implements IStorage {
   }
 
   async authenticateUser(credentials: LoginCredentials): Promise<User | undefined> {
+    // In a real app, we would hash the password and compare properly
+    // For demo purposes, we'll just check if the email matches our test user
     const user = await this.getUserByEmail(credentials.email);
-    // Check if the user exists and the password matches their site name
-    if (user && credentials.password === user.site) {
+    if (user && user.site === credentials.site) {
       return user;
     }
     return undefined;
