@@ -69,7 +69,8 @@ export async function registerRoutes(app: Express) {
           try {
             const validatedBusiness = businessSchema.parse({
               ...business,
-              state // Add state field
+              state,
+              status: business.status || "created" // Ensure status has a default value
             });
             allBusinesses.push(validatedBusiness);
           } catch (error) {

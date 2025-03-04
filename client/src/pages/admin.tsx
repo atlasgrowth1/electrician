@@ -25,36 +25,59 @@ export default function Admin() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
 
-  console.log("Admin component rendered"); // Debug log
+  // Debug logs for component render and data
+  useEffect(() => {
+    console.log("Admin component mounted");
+  }, []);
 
   const { data: businesses, isLoading, error } = useQuery<Business[]>({
     queryKey: ["/api/businesses"],
-    retry: 1
+    retry: 1,
+    refetchOnWindowFocus: false,
+    staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
+  // Debug log for query state changes
   useEffect(() => {
-    console.log("Admin page - businesses data:", { businesses, isLoading, error }); // Debug log
+    console.log("Admin page - Query state:", { 
+      isLoading,
+      error: error?.message,
+      businessCount: businesses?.length,
+      businessSample: businesses?.[0]
+    });
   }, [businesses, isLoading, error]);
 
   if (isLoading) {
-    return <div className="min-h-screen p-8">Loading businesses...</div>;
+    console.log("Admin page - Loading state");
+    return <div className="min-h-screen p-8">Loading businesses... Please wait.</div>;
   }
 
   if (error) {
-    console.error("Error loading businesses:", error);
-    return <div className="min-h-screen p-8 text-red-500">Failed to load businesses: {error.message}</div>;
+    console.error("Admin page - Error state:", error);
+    return <div className="min-h-screen p-8 text-red-500">
+      Failed to load businesses: {error.message}
+    </div>;
   }
 
   if (!businesses || businesses.length === 0) {
+    console.log("Admin page - No businesses state");
     return <div className="min-h-screen p-8">No businesses found</div>;
   }
 
   const filteredBusinesses = businesses.filter(business => {
-    const matchesState = stateFilter === "all" || business.state === stateFilter;
+    const matchesState = stateFilter === "all" || business.state.toLowerCase() === stateFilter.toLowerCase();
     const matchesStatus = statusFilter === "all" || business.status === statusFilter;
     const matchesSearch = business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          business.site.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesState && matchesStatus && matchesSearch;
+  });
+
+  console.log("Admin page - Filtered results:", {
+    total: businesses.length,
+    filtered: filteredBusinesses.length,
+    stateFilter,
+    statusFilter,
+    searchTerm
   });
 
   return (
@@ -125,7 +148,7 @@ export default function Admin() {
                     <Badge variant={business.status === "viewed" ? "secondary" : 
                                   business.status === "sent" ? "outline" : 
                                   "default"}>
-                      {business.status || "created"}
+                      {business.status}
                     </Badge>
                   </TableCell>
                   <TableCell>
