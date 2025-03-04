@@ -22,6 +22,8 @@ export default function Login() {
   const { site } = useParams();
   const { toast } = useToast();
 
+  console.log("Login page - site parameter:", site);
+
   const { data: business, isLoading, error } = useQuery<Business>({
     queryKey: [`/api/business/${site}`],
     enabled: !!site,

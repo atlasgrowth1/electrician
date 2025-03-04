@@ -12,8 +12,7 @@ function Router() {
     <Switch>
       <Route path="/:site/commercial" component={Commercial} />
       <Route path="/:site/login" component={Login} />
-      <Route path="/:site" component={Home} />
-      <Route path="/:site/" component={Home} />
+      <Route path="/:site/*" component={Home} />
       <Route path="/" component={NotFound} />
     </Switch>
   );
