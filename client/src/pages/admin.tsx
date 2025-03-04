@@ -22,26 +22,35 @@ import { Link } from "wouter";
 
 export default function Admin() {
   const [stateFilter, setStateFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: businesses, isLoading } = useQuery<(Business & { state: string })[]>({
+  const { data: businesses, isLoading, error } = useQuery<(Business & { state: string })[]>({
     queryKey: ["/api/businesses"],
     retry: 1
   });
+
+  console.log("Admin page - businesses data:", { businesses, isLoading, error }); // Debug log
 
   if (isLoading) {
     return <div className="min-h-screen p-8">Loading businesses...</div>;
   }
 
+  if (error) {
+    console.error("Error loading businesses:", error);
+    return <div className="min-h-screen p-8 text-red-500">Failed to load businesses: {error.message}</div>;
+  }
+
   if (!businesses) {
-    return <div className="min-h-screen p-8">Failed to load businesses</div>;
+    return <div className="min-h-screen p-8">No businesses found</div>;
   }
 
   const filteredBusinesses = businesses.filter(business => {
     const matchesState = stateFilter === "all" || business.state === stateFilter;
+    const matchesStatus = statusFilter === "all" || business.status === statusFilter;
     const matchesSearch = business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          business.site.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesState && matchesSearch;
+    return matchesState && matchesStatus && matchesSearch;
   });
 
   return (
@@ -66,6 +75,23 @@ export default function Admin() {
             </Select>
           </div>
 
+          <div className="w-48">
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => setStatusFilter(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="created">Created</SelectItem>
+                <SelectItem value="sent">Sent</SelectItem>
+                <SelectItem value="viewed">Viewed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <Input
             placeholder="Search businesses..."
             value={searchTerm}
@@ -81,7 +107,7 @@ export default function Admin() {
                 <TableHead>Business Name</TableHead>
                 <TableHead>Site</TableHead>
                 <TableHead>State</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Pipeline Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -92,7 +118,11 @@ export default function Admin() {
                   <TableCell>{business.site}</TableCell>
                   <TableCell className="capitalize">{business.state}</TableCell>
                   <TableCell>
-                    <Badge>Created</Badge>
+                    <Badge variant={business.status === "viewed" ? "secondary" : 
+                                  business.status === "sent" ? "outline" : 
+                                  "default"}>
+                      {business.status || "created"}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Link 

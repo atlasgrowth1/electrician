@@ -20,7 +20,8 @@ export const businessSchema = z.object({
   location_link: z.string(),
   place_id: z.string(),
   email_1: z.string(),
-  facebook: z.string()
+  facebook: z.string(),
+  status: z.enum(["created", "sent", "viewed"]).default("created")
 });
 
 export const contactFormSchema = z.object({
