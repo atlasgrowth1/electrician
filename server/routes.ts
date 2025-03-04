@@ -8,16 +8,23 @@ const GITHUB_URL = "https://raw.githubusercontent.com/atlasgrowth1/data/refs/hea
 export async function registerRoutes(app: Express) {
   app.get("/api/business/:site", async (req, res) => {
     try {
+      console.log(`Fetching business data for site: ${req.params.site}`);
       const response = await fetch(GITHUB_URL);
-      const businesses = await response.json();
-      
-      const business = businesses.find((b: any) => b.site === req.params.site);
-      
+
+      if (!response.ok) {
+        throw new Error(`GitHub API responded with status: ${response.status}`);
+      }
+
+      const businesses = await response.json() as Array<any>;
+      const business = businesses.find((b) => b.site === req.params.site);
+
       if (!business) {
+        console.log(`No business found for site: ${req.params.site}`);
         return res.status(404).json({ message: "Business not found" });
       }
 
       const validatedBusiness = businessSchema.parse(business);
+      console.log(`Found business: ${validatedBusiness.name}`);
       res.json(validatedBusiness);
     } catch (error) {
       console.error("Error fetching business data:", error);

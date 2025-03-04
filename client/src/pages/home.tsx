@@ -10,11 +10,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
   const { site } = useParams();
-  
+  console.log("Current site parameter:", site); // Debug log
+
   const { data: business, isLoading, error } = useQuery<Business>({
-    queryKey: ['/api/business', site],
-    enabled: !!site
+    queryKey: [`/api/business/${site}`],
+    enabled: !!site,
+    retry: 1
   });
+
+  console.log("API response:", { business, isLoading, error }); // Debug log
 
   if (isLoading) {
     return <div className="min-h-screen"><Skeleton className="w-full h-screen" /></div>;
