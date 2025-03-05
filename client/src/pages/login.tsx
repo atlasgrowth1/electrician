@@ -1,29 +1,17 @@
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { type Business, loginSchema } from "@shared/schema";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { type Business } from "@shared/schema";
+import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 export default function Login() {
   const { site } = useParams();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-
-  console.log("Login page - site parameter:", site); // Debug log
 
   const { data: business, isLoading, error } = useQuery<Business>({
     queryKey: [`/api/business/${site}`],
@@ -31,36 +19,21 @@ export default function Login() {
     retry: 1
   });
 
-  const form = useForm({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-      site: site || ""
+  // Auto-login when page loads
+  useEffect(() => {
+    if (site) {
+      handleLogin();
     }
-  });
+  }, [site]);
 
-  async function onSubmit(data: any) {
+  async function handleLogin() {
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
-
-      const result = await response.json();
-      console.log("Login successful, redirecting to dashboard", { site, result }); // Debug log
+      // Mock login - no actual authentication
+      console.log("Auto-login activated, redirecting to dashboard");
 
       toast({
         title: "Success",
-        description: "Logged in successfully"
+        description: "Logged in automatically"
       });
 
       // Ensure we have a valid site before redirecting
@@ -69,12 +42,14 @@ export default function Login() {
       }
 
       // Redirect to dashboard after successful login
-      setLocation(`/${site}/dashboard`);
+      setTimeout(() => {
+        setLocation(`/${site}/dashboard`);
+      }, 1500); // Short delay to show the toast
     } catch (error) {
-      console.error("Login error:", error); // Debug log
+      console.error("Login error:", error);
       toast({
         title: "Error",
-        description: "Invalid credentials",
+        description: "Something went wrong",
         variant: "destructive"
       });
     }
@@ -94,41 +69,25 @@ export default function Login() {
     <div className="min-h-screen">
       <Header business={business} />
       <main className="container py-16">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Service Provider Login</h1>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="your@email.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full">
-                Login
-              </Button>
-            </form>
-          </Form>
+        <div className="max-w-md mx-auto text-center">
+          <h1 className="text-3xl font-bold mb-6">Service Provider Portal</h1>
+          <div className="bg-blue-50 rounded-xl p-8 shadow-lg border border-blue-100">
+            <div className="animate-pulse mb-8">
+              <div className="h-16 w-16 bg-blue-600 rounded-full mx-auto flex items-center justify-center text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-lg mt-4 text-slate-600">Logging you in automatically...</p>
+            </div>
+            
+            <Button 
+              onClick={handleLogin}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
+              Continue to Dashboard
+            </Button>
+          </div>
         </div>
       </main>
       <Footer business={business} />

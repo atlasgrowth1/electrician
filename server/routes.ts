@@ -101,16 +101,36 @@ export async function registerRoutes(app: Express) {
       const { site } = req.params;
       const { status } = req.body;
 
-      if (!["sent", "viewed"].includes(status)) {
+      if (!["created", "sent", "viewed"].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
       }
 
+      console.log(`Updating status for business ${site} to ${status}`);
       // In a real app, this would update the database
       // For now, we'll just return success since we're using GitHub data
       res.json({ message: "Status updated successfully" });
     } catch (error) {
       console.error("Error updating business status:", error);
       res.status(500).json({ message: "Failed to update business status" });
+    }
+  });
+  
+  // Add lightweight endpoint just for tracking view events
+  app.post("/api/business/:site/view-event", async (req, res) => {
+    try {
+      const { site } = req.params;
+      
+      console.log(`View event tracked for business: ${site}`);
+      
+      // In a real app, this would:
+      // 1. Update a view counter in the database
+      // 2. Record the timestamp of the view
+      // 3. Set the business status to "viewed" if not already
+      
+      res.json({ message: "View event tracked successfully" });
+    } catch (error) {
+      console.error("Error tracking view event:", error);
+      res.status(500).json({ message: "Failed to track view event" });
     }
   });
 
