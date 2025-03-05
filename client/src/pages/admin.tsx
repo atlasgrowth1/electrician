@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import { type Business } from "@shared/schema";
 import {
   Table,
@@ -18,49 +18,61 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 
 export default function Admin() {
   const [stateFilter, setStateFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
 
-  // Debug logs for component render and data
-  useEffect(() => {
-    console.log("Admin component mounted");
-  }, []);
+  console.log("Admin page rendering"); // Debug log
 
   const { data: businesses, isLoading, error } = useQuery<Business[]>({
     queryKey: ["/api/businesses"],
     retry: 1,
-    refetchOnWindowFocus: false,
-    staleTime: 30000, // Consider data fresh for 30 seconds
+    refetchOnWindowFocus: false
   });
 
-  // Debug log for query state changes
-  useEffect(() => {
-    console.log("Admin page - Query state:", { 
-      isLoading,
-      error: error?.message,
-      businessCount: businesses?.length,
-      businessSample: businesses?.[0]
-    });
-  }, [businesses, isLoading, error]);
+  console.log("Admin page load status:", {
+    isLoading,
+    error: error?.message,
+    businessCount: businesses?.length
+  });
+
+  // Add mutation for updating business status
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ site, newStatus }: { site: string, newStatus: "sent" | "viewed" }) => {
+      await apiRequest("PATCH", `/api/business/${site}/status`, { status: newStatus });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/businesses"] });
+      toast({
+        title: "Success",
+        description: "Business status updated successfully"
+      });
+    },
+    onError: (error) => {
+      console.error("Status update error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update status. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
 
   if (isLoading) {
-    console.log("Admin page - Loading state");
-    return <div className="min-h-screen p-8">Loading businesses... Please wait.</div>;
+    return <div className="min-h-screen p-8">Loading businesses...</div>;
   }
 
   if (error) {
-    console.error("Admin page - Error state:", error);
-    return <div className="min-h-screen p-8 text-red-500">
-      Failed to load businesses: {error.message}
-    </div>;
+    return <div className="min-h-screen p-8 text-red-500">Error: {error.message}</div>;
   }
 
   if (!businesses || businesses.length === 0) {
-    console.log("Admin page - No businesses state");
     return <div className="min-h-screen p-8">No businesses found</div>;
   }
 
@@ -72,24 +84,16 @@ export default function Admin() {
     return matchesState && matchesStatus && matchesSearch;
   });
 
-  console.log("Admin page - Filtered results:", {
-    total: businesses.length,
-    filtered: filteredBusinesses.length,
-    stateFilter,
-    statusFilter,
-    searchTerm
-  });
-
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Business Sites Admin</h1>
+        <h1 className="text-3xl font-bold mb-8">Business Pipeline Management</h1>
 
-        <div className="flex gap-4 mb-6">
+        <div className="flex flex-wrap gap-4 mb-6">
           <div className="w-48">
             <Select
               value={stateFilter}
-              onValueChange={(value) => setStateFilter(value)}
+              onValueChange={setStateFilter}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Filter by state" />
@@ -105,7 +109,7 @@ export default function Admin() {
           <div className="w-48">
             <Select
               value={statusFilter}
-              onValueChange={(value) => setStatusFilter(value)}
+              onValueChange={setStatusFilter}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Filter by status" />
@@ -120,21 +124,21 @@ export default function Admin() {
           </div>
 
           <Input
-            placeholder="Search businesses..."
+            placeholder="Search by name or site..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
           />
         </div>
 
-        <div className="border rounded-lg">
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Business Name</TableHead>
                 <TableHead>Site</TableHead>
                 <TableHead>State</TableHead>
-                <TableHead>Pipeline Status</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -145,19 +149,36 @@ export default function Admin() {
                   <TableCell>{business.site}</TableCell>
                   <TableCell className="capitalize">{business.state}</TableCell>
                   <TableCell>
-                    <Badge variant={business.status === "viewed" ? "secondary" : 
-                                  business.status === "sent" ? "outline" : 
-                                  "default"}>
+                    <Badge variant={
+                      business.status === "viewed" ? "secondary" :
+                      business.status === "sent" ? "outline" :
+                      "default"
+                    }>
                       {business.status}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Link 
+                    {business.status === "created" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateStatusMutation.mutate({
+                          site: business.site,
+                          newStatus: "sent"
+                        })}
+                        disabled={updateStatusMutation.isPending}
+                      >
+                        Mark as Sent
+                      </Button>
+                    )}
+                    <a
                       href={`/${business.site}`}
-                      className="text-primary hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 text-sm text-primary hover:underline"
                     >
                       View Site
-                    </Link>
+                    </a>
                   </TableCell>
                 </TableRow>
               ))}

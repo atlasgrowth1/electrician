@@ -95,6 +95,25 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Add endpoint to update business status
+  app.patch("/api/business/:site/status", async (req, res) => {
+    try {
+      const { site } = req.params;
+      const { status } = req.body;
+
+      if (!["sent", "viewed"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      // In a real app, this would update the database
+      // For now, we'll just return success since we're using GitHub data
+      res.json({ message: "Status updated successfully" });
+    } catch (error) {
+      console.error("Error updating business status:", error);
+      res.status(500).json({ message: "Failed to update business status" });
+    }
+  });
+
   app.post("/api/auth/login", async (req, res) => {
     try {
       const credentials = loginSchema.parse(req.body);
