@@ -5,6 +5,7 @@ import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import Hero from "@/components/sections/hero";
 import Services from "@/components/sections/services";
+import Reviews from "@/components/sections/reviews";
 import Contact from "@/components/sections/contact";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -36,6 +37,7 @@ export default function Home() {
       <main>
         <Hero business={business} />
         <Services />
+        <Reviews business={business} />
         <Contact business={business} />
       </main>
       <Footer business={business} />
